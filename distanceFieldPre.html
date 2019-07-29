@@ -2,17 +2,16 @@
 
 </head>
 <script lang="javascript">
+    
     mapSize = 128
     gridSize = 5
-    
+    currentRadius = Math.ceil(mapSize/2)
     ctxScale = 1;
     mapData = []
     intialMapData = []
 
-    class Point
-    {
-        constructor(index, row, col)
-        {
+    class Point {
+        constructor(index, row, col) {
             this.idx = index;
             this.siteRow = row;
             this.siteCol = col;
@@ -30,9 +29,9 @@
         for (row = 0; row < mapSize; row++) {
             mapData[row] = []
             for (col = 0; col < mapSize; col++) {
-                mapData[row][col] = new Point(0,-1,-1)
-                if (getRandomInt(0,mapSize*mapSize) < 30)
-                    mapData[row][col] =new Point(getRandomInt(1,6),row, col);
+                mapData[row][col] = new Point(0, -1, -1)
+                if (getRandomInt(0, mapSize * mapSize) < 30)
+                    mapData[row][col] = new Point(getRandomInt(1, 6), row, col);
             }
         }
         intialMapData = CloneMap(mapData);
@@ -54,28 +53,28 @@
     function ColorFromIndex(idx, highlight = false) {
         m = 1;
         if (highlight)
-        m = 2;
+            m = 2;
         if (idx == 0)
             return fullColorHex(122, 122, 122)
         if (idx == 1)
-            return fullColorHex(127*m, 56*m, 56*m)
+            return fullColorHex(127 * m, 56 * m, 56 * m)
         if (idx == 2)
-            return fullColorHex(56*m, 127*m, 56*m)
+            return fullColorHex(56 * m, 127 * m, 56 * m)
         if (idx == 3)
-            return fullColorHex(56*m, 56*m, 127*m)
+            return fullColorHex(56 * m, 56 * m, 127 * m)
         if (idx == 4)
-            return fullColorHex(127*m, 127*m, 56*m)
+            return fullColorHex(127 * m, 127 * m, 56 * m)
         if (idx == 5)
-            return fullColorHex(56*m, 127*m, 127*m)
+            return fullColorHex(56 * m, 127 * m, 127 * m)
         if (idx == 6)
-            return fullColorHex(127*m, 56*m, 127*m)
+            return fullColorHex(127 * m, 56 * m, 127 * m)
     }
     function GetData(datas, row, col) {
         if (row >= 0 && row < mapSize && col >= 0 && col < mapSize) {
             return datas[row][col];
         }
         else
-            return new Point(0,-1,-1);
+            return new Point(0, -1, -1);
     }
 
     function CloneMap(src) {
@@ -84,6 +83,48 @@
             newData[y] = src[y].slice(0);
         }
         return newData;
+    }
+    function ResetMap()
+    {
+        mapData = CloneMap(intialMapData);
+        currentRadius = Math.ceil( mapSize/2);
+        DrawMap(mapData);
+
+    }
+    function JumpFloodMap(datas) {
+
+        dest = CloneMap(datas)
+        offsets = [[-1, -1], [0, -1], [1, -1],
+        [-1, 0], [1, 0],/*[0,0] self*/
+        [-1, 1], [0, 1], [1, 1]];
+        for (row = 0; row < mapSize; row++) {
+            for (col = 0; col < mapSize; col++) {
+                // if (datas[row][col][0] > 0)
+                //     continue;
+                offsets.forEach(elm => {
+                    value = GetData(datas, row + elm[0]*currentRadius, col + elm[1]*currentRadius);
+                    if (value.idx > 0) {
+                        if (dest[row][col].idx == 0) {
+                            dest[row][col] = value
+                        }
+                        else {
+                            //compare distance
+                            origin = [dest[row][col].siteRow, dest[row][col].siteCol];
+                            newOrigin = [value.siteRow, value.siteCol];
+                            dist2Origin = (row - origin[0]) * (row - origin[0]) + (col - origin[1]) * (col - origin[1]);
+                            dist2NewsOrigin = (row - newOrigin[0]) * (row - newOrigin[0]) + (col - newOrigin[1]) * (col - newOrigin[1]);
+                            if (dist2Origin > dist2NewsOrigin)
+                                dest[row][col] = value
+                        }
+                    }
+
+                });
+
+            }
+        }
+        mapData = dest;
+        DrawMap(mapData);
+        currentRadius/=2;
     }
     function FloodMap(datas) {
 
@@ -97,20 +138,17 @@
                 //     continue;
                 offsets.forEach(elm => {
                     value = GetData(datas, row + elm[0], col + elm[1]);
-                    if (value.idx > 0)
-                    {
-                        if ( dest[row][col].idx == 0)
-                        {
+                    if (value.idx > 0) {
+                        if (dest[row][col].idx == 0) {
                             dest[row][col] = value
                         }
-                        else
-                        {
+                        else {
                             //compare distance
-                            origin = [ dest[row][col].siteRow, dest[row][col].siteCol];
-                            newOrigin = [ value.siteRow, value.siteCol];
-                            dist2Origin= (row - origin[0])*(row - origin[0]) +(col-origin[1])*(col-origin[1]);
-                            dist2NewsOrigin= (row - newOrigin[0])*(row - newOrigin[0]) +(col-newOrigin[1])*(col-newOrigin[1]);
-                            if ( dist2Origin > dist2NewsOrigin)
+                            origin = [dest[row][col].siteRow, dest[row][col].siteCol];
+                            newOrigin = [value.siteRow, value.siteCol];
+                            dist2Origin = (row - origin[0]) * (row - origin[0]) + (col - origin[1]) * (col - origin[1]);
+                            dist2NewsOrigin = (row - newOrigin[0]) * (row - newOrigin[0]) + (col - newOrigin[1]) * (col - newOrigin[1]);
+                            if (dist2Origin > dist2NewsOrigin)
                                 dest[row][col] = value
                         }
                     }
@@ -145,13 +183,12 @@
             }
             for (i = 0; i < mapSize; i++) {
                 for (j = 0; j < mapSize; j++) {
-                    if (intialMapData[j][i].idx >= 1)
-                    {
-                    ctx.fillStyle = ColorFromIndex(intialMapData[j][i].idx,true);
-                    ctx.fillRect(i * (gridSize), j * (gridSize), gridSize, gridSize);
-                    ctx.strokeStyle = "#3f3f3f";
-                    ctx.strokeRect(i * (gridSize), j * (gridSize), gridSize, gridSize);
-  
+                    if (intialMapData[j][i].idx >= 1) {
+                        ctx.fillStyle = ColorFromIndex(intialMapData[j][i].idx, true);
+                        ctx.fillRect(i * (gridSize), j * (gridSize), gridSize, gridSize);
+                        ctx.strokeStyle = "#3f3f3f";
+                        ctx.strokeRect(i * (gridSize), j * (gridSize), gridSize, gridSize);
+
                     }
                 }
             }
@@ -184,88 +221,94 @@
 
 
     function OnCanvasClick(e) {
-        
+
         var canvas = document.getElementById('canvas');
-        
+
         const rect = canvas.getBoundingClientRect()
         const x = event.clientX - rect.left
         const y = event.clientY - rect.top
-        gridX= Math.floor(x/gridSize/ctxScale)
-        gridY= Math.floor(y/gridSize/ctxScale)
-        startX = (gridX+0.5)*gridSize;
-        startY = (gridY+0.5)*gridSize;
+        gridX = Math.floor(x / gridSize / ctxScale)
+        gridY = Math.floor(y / gridSize / ctxScale)
+        startX = (gridX + 0.5) * gridSize;
+        startY = (gridY + 0.5) * gridSize;
         DrawMap(mapData);
         var canvas = document.getElementById('canvas');
         var ctx = canvas.getContext('2d');
         ctx.strokeStyle = "#ff7fff";
-        closest=[]
+        closest = []
         for (i = 0; i < mapSize; i++) {
-                for (j = 0; j < mapSize; j++) {
-                    if (intialMapData[j][i].idx >= 1)
+            for (j = 0; j < mapSize; j++) {
+                if (intialMapData[j][i].idx >= 1)
                     closest.push(intialMapData[j][i])
-                }
-            }        
-        
-        closest.sort(function(a, b){
-            
-            endXa = (a.siteCol+0.5)*gridSize;
-            endYa = (a.siteRow+0.5)*gridSize;
-            endXb = (b.siteCol+0.5)*gridSize;
-            endYb = (b.siteRow+0.5)*gridSize;
-            distToA =  (startX - endXa)*(startX - endXa) + (startY-endYa)*(startY-endYa)
-            distToB =  (startX - endXb)*(startX - endXb) + (startY-endYb)*(startY-endYb)
+            }
+        }
+
+        closest.sort(function (a, b) {
+
+            endXa = (a.siteCol + 0.5) * gridSize;
+            endYa = (a.siteRow + 0.5) * gridSize;
+            endXb = (b.siteCol + 0.5) * gridSize;
+            endYb = (b.siteRow + 0.5) * gridSize;
+            distToA = (startX - endXa) * (startX - endXa) + (startY - endYa) * (startY - endYa)
+            distToB = (startX - endXb) * (startX - endXb) + (startY - endYb) * (startY - endYb)
             return distToA - distToB;
         });
-        closest = closest.slice(0,3)
-        closest.forEach( pt =>
-            {
-                        ctx.beginPath();
-                       
-                        endX = (pt.siteCol+0.5)*gridSize;
-                        endY = (pt.siteRow+0.5)*gridSize;
-                        ctx.moveTo(startX, startY);
-                        ctx.lineTo(endX,endY);
-                        ctx.stroke();    
-                        ctx.font = "10px";
-                        distance = (startX - endX)*(startX - endX) + (startY-endY)*(startY-endY)
-                        distance = Math.sqrt(distance);
-                        ctx.fillText(distance.toFixed(3), endX, endY);                      
-                    })
+        closest = closest.slice(0, 3)
+        closest.forEach(pt => {
+            ctx.beginPath();
+
+            endX = (pt.siteCol + 0.5) * gridSize;
+            endY = (pt.siteRow + 0.5) * gridSize;
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            ctx.font = "10px";
+            distance = (startX - endX) * (startX - endX) + (startY - endY) * (startY - endY)
+            distance = Math.sqrt(distance);
+            ctx.fillText(distance.toFixed(3), endX, endY);
+        })
     }
 
-    function OnMapSizeChanged(e)
-    {
+    function OnMapSizeChanged(e) {
         slider = document.getElementById("myRange");
         var output = document.getElementById("mapSize");
-        output.innerHTML = slider.value;
+        output.innerHTML =Math.pow(2,slider.value);
 
-        mapSize = slider.value
+        mapSize = Math.pow(2,slider.value);
         InitializeMap();
         DrawMap(mapData);
     }
 
-    
+
 </script>
 <html>
+
+<table>
+    <tr>
+
+        <td>
+                <button onclick="InitializeMap();DrawMap(mapData)">NewMap</button>
+                <button onclick="ResetMap()">ResetMap</button>
+            <button onclick="FloodMap(mapData)">Flood</button>
         
-    <table>
-            <tr>
-                    
-                <td><button onclick="FloodMap(mapData)">Flood</button>  
-                    <input  type="range" min="1" max="128" value="64" class="slider" id="myRange" oninput="OnMapSizeChanged()">MapSize: <span id="mapSize">64</span>
-                <button onclick="DrawMap(mapData)">Repaint</button>
-                <slider ></slider>
-            </td>
-            </tr>
-            <tr><td><canvas id="canvas" width="160" height="160"></canvas></td></tr>
+            <button onclick="JumpFloodMap(mapData)">JumpFlooding</button>
+            <input type="range" min="1" max="7" value="7" class="slider" id="myRange"
+                oninput="OnMapSizeChanged()">MapSize: <span id="mapSize">128</span>
+            <button onclick="DrawMap(mapData)">Repaint</button>
+            <slider></slider>
+        </td>
+    </tr>
+    <tr>
+        <td><canvas id="canvas" width="160" height="160"></canvas></td>
+    </tr>
 
 </table>
 <script>
     var canvas = document.getElementById('canvas');
     canvas.addEventListener("mousewheel", OnCanvasMouseScroll);
     canvas.addEventListener("mousedown", OnCanvasClick);
-    canvas.width = ctxScale*mapSize*gridSize;
-    canvas.height = ctxScale*mapSize*gridSize;
+    canvas.width = ctxScale * mapSize * gridSize;
+    canvas.height = ctxScale * mapSize * gridSize;
     DrawMap(mapData)</script>
 
 </html>
