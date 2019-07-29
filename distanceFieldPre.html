@@ -2,8 +2,9 @@
 
 </head>
 <script lang="javascript">
-    gridSize = 5
     mapSize = 128
+    gridSize = 5
+    
     ctxScale = 1;
     mapData = []
     intialMapData = []
@@ -179,20 +180,16 @@
         event.preventDefault()
 
     }
+
+
+
     function OnCanvasClick(e) {
+        
         var canvas = document.getElementById('canvas');
-        var x;
-        var y;
-        if (e.pageX || e.pageY) {
-            x = e.pageX;
-            y = e.pageY;
-        }
-        else {
-            x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-            y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
-        }
-        x -= canvas.offsetLeft;
-        y -= canvas.offsetTop;
+        
+        const rect = canvas.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
         gridX= Math.floor(x/gridSize/ctxScale)
         gridY= Math.floor(y/gridSize/ctxScale)
         startX = (gridX+0.5)*gridSize;
@@ -229,17 +226,40 @@
                         ctx.moveTo(startX, startY);
                         ctx.lineTo(endX,endY);
                         ctx.stroke();    
-                        ctx.font = "10px Arial";
+                        ctx.font = "10px";
                         distance = (startX - endX)*(startX - endX) + (startY-endY)*(startY-endY)
                         distance = Math.sqrt(distance);
                         ctx.fillText(distance.toFixed(3), endX, endY);                      
                     })
     }
 
+    function OnMapSizeChanged(e)
+    {
+        slider = document.getElementById("myRange");
+        var output = document.getElementById("mapSize");
+        output.innerHTML = slider.value;
+
+        mapSize = slider.value
+        InitializeMap();
+        DrawMap(mapData);
+    }
+
+    
 </script>
 <html>
-<button onclick="FloodMap(mapData)">Flood</button>
-<canvas id="canvas" width="160" height="160"></canvas>
+        
+    <table>
+            <tr>
+                    
+                <td><button onclick="FloodMap(mapData)">Flood</button>  
+                    <input  type="range" min="1" max="128" value="64" class="slider" id="myRange" oninput="OnMapSizeChanged()">MapSize: <span id="mapSize">64</span>
+                <button onclick="DrawMap(mapData)">Repaint</button>
+                <slider ></slider>
+            </td>
+            </tr>
+            <tr><td><canvas id="canvas" width="160" height="160"></canvas></td></tr>
+
+</table>
 <script>
     var canvas = document.getElementById('canvas');
     canvas.addEventListener("mousewheel", OnCanvasMouseScroll);
