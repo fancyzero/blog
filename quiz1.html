@@ -26,13 +26,11 @@
     //verify answer
     function checkAnswer() {
         strRotX = document.getElementById("rotationX").value;
-        x1 = strRotX.substring(0, 3);
-        x2 = strRotX.substring(0, 6);
+        x1 = strRotX.substring(0, 6);
 
         strRotY = document.getElementById("rotationY").value;
         y1 = strRotY.substring(0, 3);
-        y2 = strRotY.substring(0, 6);
-        if (hex_md5(y2) == "2e701aaec0ad662299588c57cb105034" && hex_md5(x1) == "6c8349cc7260ae62e3b1396831a8398f")
+        if (hex_md5(x1) == "2e701aaec0ad662299588c57cb105034" && hex_md5(y1) == "6c8349cc7260ae62e3b1396831a8398f")
             document.getElementById("annouce").innerHTML = "Correct!"
         else
             document.getElementById("annouce").innerHTML = ""
